@@ -89,9 +89,10 @@ func MigrationDataInventory(c *gin.Context) {
                 }
                 //updating stock in inventory
                 param := inventory.InoutParam {
-                    M_inventory_id: M_inventory_id,
-                    Inout_qty: int (qty),
-                    T_order_line_id: int (modeltOrderLine.T_order_line_id),
+                    M_inventory_id  : M_inventory_id,
+                    Inout_qty       : int (qty),
+                    T_order_line_id : int (modeltOrderLine.T_order_line_id),
+                    Description     : "Import From CSV",
                 }
                 fmt.Println(param)
                 inventory.DoInout(param)

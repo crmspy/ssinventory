@@ -24,9 +24,8 @@ func main() {
 	{
 		auth.POST("/login", GetKey)
         auth.GET("/getProfile", Auth,GetProfile)
-        		
         /*
-        v1.Use(Auth) memanggil middleware di awal 
+        v1.Use(Auth) call middleware
         auth.GET("/logout", Auth,GetTodo)
 		auth.GET("/session", Auth,GetTodo) //get active session
         auth.DELETE("/session/:id", Auth,GetTodo) //delete session
@@ -48,6 +47,11 @@ func main() {
         v0.DELETE("inventory/:id", DeleteMinventory)
         v0.POST("inventory/migration", MigrationDataInventory)
         v0.POST("inventory/inout", Inout)
+
+        //report
+        v0.GET("inventory/availablestock", AvailableStock)
+        v0.GET("inventory/goodreceipt", GoodReceipt)
+        v0.GET("inventory/goodshipment", GoodShipment)
 	}
 	router.Run()
 }

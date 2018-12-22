@@ -76,7 +76,6 @@ m_inventory_id
 name
 
 #m_inventory_line
-m_inventory_line
 m_inventory_line_id 
 m_inventory_id
 m_product_id

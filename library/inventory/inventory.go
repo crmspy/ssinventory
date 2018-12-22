@@ -18,6 +18,7 @@ type    InoutParam struct {
         M_product_id			string
         T_order_line_id         int
         Inout_qty               int
+        Description             string
 }
 
 /*
@@ -63,7 +64,7 @@ func DoInout(p InoutParam)(error){
     case "P":
         //purchase order
         //insert into tinout
-        conn.Db.Exec("INSERT INTO t_inouts (inout_type, m_inventory_id, m_product_id, t_order_line_id, inout_qty,inout_date) VALUES(?, ?, ?, ?, ?, ?)", "IN",p.M_inventory_id,m_product_id,p.T_order_line_id,p.Inout_qty,timenow)
+        conn.Db.Exec("INSERT INTO t_inouts (inout_type, m_inventory_id, m_product_id, t_order_line_id, inout_qty,inout_date,description) VALUES(?, ?, ?, ?, ?, ?, ?)", "IN",p.M_inventory_id,m_product_id,p.T_order_line_id,p.Inout_qty,timenow,p.Description)
         
         //update data order
         conn.Db.Exec("UPDATE t_order_lines SET orderline_outstanding=?, orderline_received=? where t_order_line_id = ?", product_outstanding, product_received,p.T_order_line_id)
@@ -96,7 +97,7 @@ func DoInout(p InoutParam)(error){
         }
         
         //insert into tinout for history movement product
-        conn.Db.Exec("INSERT INTO t_inouts (inout_type, m_inventory_id, m_product_id, t_order_line_id, inout_qty,inout_date) VALUES(?, ?, ?, ?, ?, ?)", "OUT",p.M_inventory_id,m_product_id,p.T_order_line_id,p.Inout_qty,timenow)
+        conn.Db.Exec("INSERT INTO t_inouts (inout_type, m_inventory_id, m_product_id, t_order_line_id, inout_qty,inout_date,description) VALUES(?, ?, ?, ?, ?, ?, ?)", "OUT",p.M_inventory_id,m_product_id,p.T_order_line_id,p.Inout_qty,timenow,p.Description)
         
         //update data order
         conn.Db.Exec("UPDATE t_order_lines SET orderline_outstanding=?, orderline_received=? where t_order_line_id = ?", product_outstanding, product_received,p.T_order_line_id)

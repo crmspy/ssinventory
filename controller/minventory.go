@@ -8,6 +8,9 @@ import (
     "time"
     "fmt"
     "strconv"
+    "bytes"
+    log "github.com/Sirupsen/logrus"
+    "encoding/csv"
 )
 
 type (
@@ -35,6 +38,7 @@ type (
         T_order_line_id         int         `gorm:"type:int"`
         Inout_qty               int         `gorm:"type:int"`
         Inout_date              time.Time   `gorm:"type:datetime"`
+        Description             string      `gorm:"type:varchar(255)"`
     }
 
     // transformedmInventory represents a formatted inventory location
@@ -105,6 +109,7 @@ func Inout(c *gin.Context){
         M_inventory_id: c.PostForm("m_inventory_id"),
         Inout_qty: qty,
         T_order_line_id: t_order_line_id,
+        Description: c.PostForm("description"),
     }
     if e := inventory.DoInout(param); e != nil{
         fmt.Println(e)
@@ -112,4 +117,182 @@ func Inout(c *gin.Context){
     }else{
         c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "inventory '"+param.M_inventory_id+"' was updated successfully"})
     }
+}
+
+type Contact struct {
+    Email string
+    Open  int64
+    Link  int64
+}
+
+type Contacts []Contact
+
+//download available product in inventory
+func AvailableStock(c *gin.Context){
+
+    b := &bytes.Buffer{}
+    w := csv.NewWriter(b)
+
+    //header csv
+    if err := w.Write([]string{"Inventory Location","SKU", "Nama Item","Jumlah Barang","Last Update"}); err != nil {
+        log.Fatalln("error writing record to csv:", err)
+    }
+
+    // get available stock
+    rows, _ := conn.Db.Raw(`
+    select 
+        m_products.m_product_id,
+        m_products.name,
+        m_inventory_lines.qty_count,
+        m_inventory_lines.m_inventory_id,
+        m_inventory_lines.last_update
+    from 
+        m_inventory_lines 
+        left join m_products on (m_products.m_product_id = m_inventory_lines.m_product_id) 
+        order by m_inventory_lines.m_product_id asc
+    `).Rows() // (*sql.Rows, error)
+    defer rows.Close()
+    for rows.Next() {
+        var m_product_id,product_name,qty_count,m_inventory_id string
+        var last_update time.Time
+        rows.Scan(&m_product_id,&product_name,&qty_count,&m_inventory_id,&last_update)
+
+        var record []string
+        record = append(record, m_product_id)
+        record = append(record, product_name)
+        record = append(record, qty_count)
+        record = append(record, m_inventory_id)
+        record = append(record, last_update.Format("2006-01-02 15:04:05"))
+        if err := w.Write(record); err != nil {
+            log.Fatalln("error writing record to csv:", err)
+        }
+    }
+    w.Flush()
+
+    if err := w.Error(); err != nil {
+        log.Fatal(err)
+    }
+    c.Header("Content-Description", "File Transfer")
+    c.Header("Content-Disposition", "attachment; filename=AvailableStock.csv")
+    c.Data(http.StatusOK, "text/csv", b.Bytes())
+}
+
+//download good receipt
+func GoodReceipt(c *gin.Context){
+
+    b := &bytes.Buffer{}
+    w := csv.NewWriter(b)
+    //header csv
+    if err := w.Write([]string{"Waktu","SKU", "Nama Barang","Jumlah Pesanan","Jumlah Diterima","Harga Beli","Total","No Kwitansi","Catatan"}); err != nil {
+        log.Fatalln("error writing record to csv:", err)
+    }
+
+    // get available stock
+    rows, _ := conn.Db.Raw(`
+        select
+            t_inouts.inout_date,
+            m_products.m_product_id,
+            m_products.name,
+            t_order_lines.orderline_qty,
+            t_order_lines.orderline_received,
+            t_order_lines.orderline_price,
+            t_order_lines.orderline_total_amount,
+            t_orders.t_order_id,
+            t_inouts.description
+        from 
+            t_inouts
+            left join t_order_lines on (t_order_lines.t_order_line_id = t_inouts.t_order_line_id)
+            left join m_products on (m_products.m_product_id = t_order_lines.m_product_id)
+            left join t_orders on (t_orders.t_order_id = t_order_lines.t_order_id)
+            where t_inouts.inout_type = 'IN'
+            group by t_inouts.t_order_line_id
+            order by t_inouts.inout_date asc
+        `).Rows() // (*sql.Rows, error)
+    defer rows.Close()
+    for rows.Next() {
+        var m_product_id,name,orderline_qty,orderline_received,orderline_price,orderline_total_amount,t_order_id,description string
+        var inout_date time.Time
+        rows.Scan(&inout_date,&m_product_id,&name,&orderline_qty,&orderline_received,&orderline_price,&orderline_total_amount,&t_order_id,&description)
+        var record []string
+        record = append(record, inout_date.Format("2006-01-02 15:04:05"))
+        record = append(record, m_product_id)
+        record = append(record, name)
+        record = append(record, orderline_qty)
+        record = append(record, orderline_received)
+        record = append(record, orderline_price)
+        record = append(record, orderline_total_amount)
+        record = append(record, t_order_id)
+        record = append(record, description)
+        if err := w.Write(record); err != nil {
+            log.Fatalln("error writing record to csv:", err)
+        }
+    }
+    w.Flush()
+
+    if err := w.Error(); err != nil {
+        log.Fatal(err)
+    }
+    c.Header("Content-Description", "File Transfer")
+    c.Header("Content-Disposition", "attachment; filename=GoodReceipt.csv")
+    c.Data(http.StatusOK, "text/csv", b.Bytes())
+}
+
+//download good shipment
+func GoodShipment(c *gin.Context){
+
+    b := &bytes.Buffer{}
+    w := csv.NewWriter(b)
+    //header csv
+    if err := w.Write([]string{"Waktu","SKU", "Nama Barang","Jumlah Pesanan","Jumlah Dikirim","Harga Jual","Total","No Pesanan","Catatan"}); err != nil {
+        log.Fatalln("error writing record to csv:", err)
+    }
+
+    // get available stock
+    rows, _ := conn.Db.Raw(`
+        select
+            t_inouts.inout_date,
+            m_products.m_product_id,
+            m_products.name,
+            t_order_lines.orderline_qty,
+            t_order_lines.orderline_received,
+            t_order_lines.orderline_price,
+            t_order_lines.orderline_total_amount,
+            t_orders.t_order_id,
+            t_inouts.description
+        from 
+            t_inouts
+            left join t_order_lines on (t_order_lines.t_order_line_id = t_inouts.t_order_line_id)
+            left join m_products on (m_products.m_product_id = t_order_lines.m_product_id)
+            left join t_orders on (t_orders.t_order_id = t_order_lines.t_order_id)
+            where t_inouts.inout_type = 'OUT'
+            group by t_inouts.t_order_line_id
+            order by t_inouts.inout_date asc
+        `).Rows() // (*sql.Rows, error)
+    defer rows.Close()
+    for rows.Next() {
+        var m_product_id,name,orderline_qty,orderline_received,orderline_price,orderline_total_amount,t_order_id,description string
+        var inout_date time.Time
+        rows.Scan(&inout_date,&m_product_id,&name,&orderline_qty,&orderline_received,&orderline_price,&orderline_total_amount,&t_order_id,&description)
+        var record []string
+        record = append(record, inout_date.Format("2006-01-02 15:04:05"))
+        record = append(record, m_product_id)
+        record = append(record, name)
+        record = append(record, orderline_qty)
+        record = append(record, orderline_received)
+        record = append(record, orderline_price)
+        record = append(record, orderline_total_amount)
+        record = append(record, t_order_id)
+        record = append(record, description)
+        if err := w.Write(record); err != nil {
+            log.Fatalln("error writing record to csv:", err)
+        }
+    }
+    w.Flush()
+
+    if err := w.Error(); err != nil {
+        log.Fatal(err)
+    }
+    c.Header("Content-Description", "File Transfer")
+    c.Header("Content-Disposition", "attachment; filename=GoodShipment.csv")
+    c.Data(http.StatusOK, "text/csv", b.Bytes())
 }

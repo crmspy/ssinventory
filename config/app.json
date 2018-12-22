@@ -1,0 +1,22 @@
+{
+    "database" : "sqlite",
+    "mysql": {
+        "host": "192.168.1.1",
+        "port": "8081",
+        "username": "root",
+        "password": ""
+    },
+    "sqlite": {
+        "file": "db/inventory.db"
+    },
+    "filestatus": {
+        "D": "Draft",
+        "P": "Published",
+        "S": "Scheduled"
+    },
+    "postgresql": {
+        "host": "192.168.1.2",
+        "port": "8082",
+        "enabled": true
+    }
+}

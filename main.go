@@ -1,5 +1,10 @@
 package main
 
+/*
+Code By Nurul Hidayat
+email : crmspy@gmail.com
+*/
+
 import (
 	"github.com/crmspy/ssinventory/library/autoload"
 	."github.com/crmspy/ssinventory/controller"

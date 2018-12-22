@@ -1,11 +1,12 @@
 package auth
+
 /*
 Code By Nurul Hidayat
 crmspy@gmail.com
 
 authentication using jwt with database support
-
 */
+
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"

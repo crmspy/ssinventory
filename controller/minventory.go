@@ -43,7 +43,6 @@ type (
 		Name			string		`json:"name"`
     }
     
-    PmInventoryLine *mInventoryLine
 )
 
 // Create Inventory location
@@ -90,21 +89,6 @@ func DeleteMinventory(c *gin.Context) {
         c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Inventory location deleted successfully!"})
 }
 
-/* Migration data inventory
-this migration process takes several steps:
-1. creating order dummy so system can get information about product, purchase price & last stock
-2. move order data to inventory
-*/
-func MigrationDataInventory(c *gin.Context) {
-    model_tOrder := tOrder{
-        T_order_id: c.PostForm("t_order_id"),
-        Order_type: "P",
-        Description: c.PostForm("description"),
-    }
-    conn.Db.Save(&model_tOrder)
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Migration data successfully!", "resourceId": model_tOrder.T_order_id})
-
-}
 
 /*
 the main function of the inventory application

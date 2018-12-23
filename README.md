@@ -15,6 +15,10 @@ go get github.com/crmspy/ssinventory
  go to folder $GOPATH/github.com/crmspy/ssinventory then run this command:
 
 ```bash
+#install all Install dependencies
+go get -d -v
+
+#run
 go run main.go
 ```
 

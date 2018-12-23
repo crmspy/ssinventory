@@ -9,6 +9,7 @@ import (
     "time"
     "math/rand"
     "fmt"
+    "strconv"
 )
 
 type (
@@ -56,11 +57,21 @@ type (
     }
 )
 
+//get offset and limit for paging
+func calcpage(page int)(int,int){
+    page -= 1
+    limit := 10
+    offset := (page * limit) + 1
+    return offset,limit
+}
+
 // fetch all order
 func FetchAllTorder(c *gin.Context) {
 	var modeltOrder []tOrder
-	var _modeltOrder []transformedtOrder
-   conn.Db.Find(&modeltOrder)
+    var _modeltOrder []transformedtOrder
+    page,_  := strconv.Atoi(c.DefaultQuery("page", "1"))
+   offset,limit := calcpage(page)
+   conn.Db.Offset(offset).Limit(limit).Find(&modeltOrder)
    if len(modeltOrder) <= 0 {
 	 c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No Order found!"})
 	 return
@@ -156,7 +167,7 @@ func CreateTorder(c *gin.Context) {
             Orderline_outstanding   : value.Orderline_qty,
         }
         
-        //insert produc order
+        //insert product order
         if err := tx.Save(&modeltOrderLine).Error; err != nil {
             tx.Rollback()
             c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "data": "Failed insert line order"})

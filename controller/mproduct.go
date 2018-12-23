@@ -21,8 +21,13 @@ type (
 
 // Create Product
 func CreateMproduct(c *gin.Context) {
+    m_product_id := c.PostForm("m_product_id")
+    if err := IssetProduct(m_product_id); err == nil{
+        c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "data": "Product "+m_product_id+" already exist"})
+        return
+    }
 	model_mProduct := mProduct{
-        M_product_id: c.PostForm("m_product_id"),
+        M_product_id: m_product_id,
         Name: c.PostForm("name"),
     }
 	conn.Db.Save(&model_mProduct)
@@ -51,9 +56,38 @@ func FetchAllMproduct(c *gin.Context) {
 func IssetProduct(id string) (error){
     var M_product_id string
     conn.Db.Table("m_products").Where("m_product_id = ?", id).Select("m_product_id").Row().Scan(&M_product_id)
-
     if M_product_id=="" {
         return errors.New("Cannot find product in out database")
     }
     return nil
+}
+
+// update a product
+func UpdateMproduct(c *gin.Context) {
+    var modelmProduct mProduct
+    m_product_id := c.Param("id")
+
+    conn.Db.First(&modelmProduct, "m_product_id = ?", m_product_id)
+
+    if modelmProduct.M_product_id == "" {
+        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No product found!"})
+        return
+    }
+
+    conn.Db.Model(&modelmProduct).Update("name", c.PostForm("name"))
+    c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Product updated successfully!"})
+}
+
+//delete product
+func DeleteMproduct(c *gin.Context) {
+    var modelmProduct mProduct
+    m_product_id := c.Param("id")
+
+    conn.Db.Where("m_product_id = ?", m_product_id).First(&modelmProduct)
+    if modelmProduct.M_product_id == "" {
+        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No product found!"})
+        return
+        }
+    conn.Db.Delete(&modelmProduct)
+        c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Product deleted successfully!"})
 }

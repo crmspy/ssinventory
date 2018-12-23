@@ -51,8 +51,17 @@ type (
 
 // Create Inventory location
 func CreateMinventory(c *gin.Context) {
-	model_mInventory := mInventory{
-        M_inventory_id: c.PostForm("m_inventory_id"),
+    var model_mInventory mInventory
+    m_inventory_id := c.PostForm("m_inventory_id")
+
+    conn.Db.First(&model_mInventory, "m_inventory_id = ?", m_inventory_id)
+    if model_mInventory.M_inventory_id != "" {
+        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Inventory location already exist!"})
+        return
+    }
+
+	model_mInventory = mInventory{
+        M_inventory_id: m_inventory_id,
         Name: c.PostForm("name"),
     }
 	conn.Db.Save(&model_mInventory)
@@ -78,6 +87,22 @@ func FetchAllMinventory(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": _modelmInventory})
 }
 
+
+// update a inventory location
+func UpdateMinventory(c *gin.Context) {
+    var modelmInventory mInventory
+    m_inventory_id := c.Param("id")
+
+    conn.Db.First(&modelmInventory, "m_inventory_id = ?", m_inventory_id)
+
+    if modelmInventory.M_inventory_id == "" {
+        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No inventory location found!"})
+        return
+    }
+
+    conn.Db.Model(&modelmInventory).Update("name", c.PostForm("name"))
+    c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Inventory Location updated successfully!"})
+}
 
 // remove a inventory location
 func DeleteMinventory(c *gin.Context) {
@@ -112,20 +137,12 @@ func Inout(c *gin.Context){
         Description: c.PostForm("description"),
     }
     if e := inventory.DoInout(param); e != nil{
-        fmt.Println(e)
         c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprint(e)})
     }else{
         c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "inventory '"+param.M_inventory_id+"' was updated successfully"})
     }
 }
 
-type Contact struct {
-    Email string
-    Open  int64
-    Link  int64
-}
-
-type Contacts []Contact
 
 //download available product in inventory
 func AvailableStock(c *gin.Context){

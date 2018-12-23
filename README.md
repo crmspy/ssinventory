@@ -43,6 +43,12 @@ api service will automatically run on port localhost:8080
 4) Create SO(Sales Order) transaction 
 5) Now you can Download all transaction using api in folder Report
 
+## Sample Output Data in .csv
+I include a sample of result from this api, you can see at folder 
+```
+ssinventory/sample/output report sample/
+```
+
 ## REST API
 This is rest api documentation that available in SSinventory, If you wanna see full api you can see on [SSinventory Api Documentation](https://documenter.getpostman.com/view/2625111/Rzn8QMcJ) link
 
@@ -151,6 +157,7 @@ t_order_id
 order_type ('P' 'S')
 order_amount
 order_status ('D','W','P','I','C','X')
+order_date
 
 #t_order_line
 t_order_line_id

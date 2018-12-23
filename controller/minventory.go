@@ -43,7 +43,7 @@ type (
 
     // transformedmInventory represents a formatted inventory location
 	transformedmInventory struct {
-		M_inventory_id	string		`json:"inventory_id"`
+		M_inventory_id	string		`json:"m_inventory_id"`
 		Name			string		`json:"name"`
     }
     

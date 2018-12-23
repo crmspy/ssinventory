@@ -12,6 +12,7 @@ go get github.com/crmspy/ssinventory
 ```
 
 ## Usage
+ go to folder $GOPATH/github.com/crmspy/ssinventory then run this command:
 
 ```bash
 go run main.go
@@ -22,6 +23,7 @@ if you a developer and want it run with autoload when files change, run:
 ./fresh
 ```
 
+api service will automatically run on port localhost:8080
 ## Main Feature
 1) Stores actual stock of products
 2) To store product that will be stored into the inventory.
@@ -29,11 +31,95 @@ if you a developer and want it run with autoload when files change, run:
 4) Shows a report for owner to help her analyze and make decision. This report is related to total inventory value of Toko owner.
 5) Shows a report for owner to help her analyze and make decision. This report is related to omzet / selling / profit.
 
+## Overview
+1) Simple workflow that you must do is:
+2) upload your stock OR
+3) create new PO(Purchase Order) with "create order" then update stock at inventory using "inventory update stock"
+4) Create SO(Sales Order) transaction 
+5) Now you can Download all transaction using api in folder Report
+
 ## REST API
-This is rest api documentation that available in SSinventory
+This is rest api documentation that available in SSinventory, If you wanna see full api you can see on [SSinventory Api Documentation](https://documenter.getpostman.com/view/2625111/Rzn8QMcJ) link
 
+### @Report
 
+Report Report Good Shipment
+```curl
+curl --location --request GET "localhost:8080/api/v1/inventory/goodshipment"
+```
 
+Report Sales Order
+```curl
+curl --location --request POST "localhost:8080/api/v1/inventory/salesorder" \
+  --form "date_start=2018-12-20" \
+  --form "date_end=2018-12-25"
+```
+
+Report Available Stock
+```curl
+curl --location --request GET "localhost:8080/api/v1/inventory/availablestock"
+```
+
+Report Value Of Product
+```curl
+curl --location --request GET "localhost:8080/api/v1/inventory/valueofproduct"
+```
+
+Report Good Receipt
+```curl
+curl --location --request GET "localhost:8080/api/v1/inventory/goodreceipt"
+```
+
+### @Transaction
+Migration Data From .csv, format collumn that you must use is like this
+
+| Product Code | Product Name      | Qty | Price | Inventory Location |
+|--------------|-------------------|-----|-------|--------------------|
+| P001         | Belgian Chocolate | 10  | 10000 | General            |
+| P002         | Mongo Milk        | 5   | 50000 | General            |
+|              |                   |     |       |                    |
+
+If you did't set "Inventory Location" that will automatically set to "General". you can use sample data at folder sample/Format Upload CSV.csv
+
+```
+curl --location --request POST "localhost:8080/api/v1/inventory/migration" \
+  --form "file=@"
+```
+
+Create Order
+```
+curl --location --request POST "localhost:8080/api/v1/order" \
+  --form "t_order_id=S0004" \
+  --form "description=pembelian sample product" \
+  --form "detail={\"detail\":[{\"m_product_id\":\"SSI-D00791015-LL-BWH\",\"qty\":5,\"price\":100000},{\"m_product_id\":\"SSI-D01220307-XL-SAL\",\"qty\":10,\"price\":175000}]}" \
+  --form "order_type=S" \
+  --form "order_status=P"
+```
+
+Update Stock In Inventory
+```
+curl --location --request POST "localhost:8080/api/v1/inventory/inout" \
+  --form "m_inventory_id=General" \
+  --form "qty=5" \
+  --form "t_order_line_id=64" \
+  --form "description=diterima sebagian"
+```
+### @Master Data
+insert new product or inventory location
+
+Insert Product
+```
+curl --location --request POST "localhost:8080/api/v1/product" \
+  --form "m_product_id=UK12" \
+  --form "name=this is my product"
+```
+
+Add New Inventory Location
+```
+curl --location --request POST "localhost:8080/api/v1/inventory" \
+  --form "m_inventory_id=MAINMain" \
+  --form "name=Main Inventory"
+```
 ## Database Desain & Flag
 This is database schema in ssinventory
 

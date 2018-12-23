@@ -1,0 +1,12 @@
+Laporan Nilai Barang
+
+Tanggal Cetak,23-12-2018
+Tanggal,2018-12-20 - 2018-12-25
+Total Omset,2.25e+06
+Total Laba Kotor,550000
+Total Penjualan,2
+Total Barang,15
+
+ID Pesanan,Waktu,SKU,Nama Barang,Jumlah,Harga Jual,Total,Harga Beli,Laba
+S0004,2018-12-23 00:52:22,SSI-D00791015-LL-BWH,"Zalekia Plain Casual Blouse (L,Broken White)",5,100000,500000,80000,100000
+S0004,2018-12-23 00:52:22,SSI-D01220307-XL-SAL,"Devibav Plain Trump Blouse (XL,Salem)",10,175000,1.75e+06,130000,450000

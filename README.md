@@ -18,13 +18,14 @@ go get github.com/crmspy/ssinventory
 #install all Install dependencies
 go get -d -v
 
-#run
-go run main.go
-```
+#or
+go get ./...
 
-if you a developer and want it run with autoload when files change, run:
-```bash
-./fresh
+#run application
+go run main.go
+
+#to build and run application
+go build main.go && ./main
 ```
 
 api service will automatically run on port localhost:8080

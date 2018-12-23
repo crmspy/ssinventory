@@ -52,6 +52,8 @@ func main() {
         v0.GET("inventory/availablestock", AvailableStock)
         v0.GET("inventory/goodreceipt", GoodReceipt)
         v0.GET("inventory/goodshipment", GoodShipment)
+        v0.GET("inventory/valueofproduct", ValueofProduct)
+        v0.POST("inventory/salesorder", SalesOrder)
 	}
 	router.Run()
 }

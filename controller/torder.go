@@ -6,21 +6,23 @@ import (
 	"net/http"
     "github.com/crmspy/ssinventory/library/conn"
     "encoding/json"
+    "time"
 )
 
 type (
 	tOrder struct {
 		//gorm.Model
 		T_order_id		string		`gorm:"type:varchar(64);PRIMARY_KEY"`
-		Order_type		string		`gorm:"type:enum(1);"`
+		Order_type		string		`gorm:"type:varchar(1);"`
         Order_amount	float64		`gorm:"type:float(16,2);"`
         Description     string
-        Order_status	string		`gorm:"type:enum(1);"`
+        Order_status	string		`gorm:"type:varchar(1);"`
+        Order_date      time.Time   `gorm:"type:datetime"`
     }
 
     tOrderLine struct {
 		//gorm.Model
-		T_order_line_id		        int		`gorm:"AUTO_INCREMENT"`
+		T_order_line_id		        int		    `gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
 		T_order_id  		        string		`gorm:"type:varchar(64);"`
         M_product_id	            string		`gorm:"type:varchar(64);"`
         Orderline_qty               int         `gorm:"type:int"`
@@ -37,6 +39,7 @@ type (
         Order_amount	float64		`json:"amount"`
         Description     string      `json:"description"`
         Order_status    string      `json:"order_status"`
+        Order_date      time.Time   `json:"order_date"`
     }
     
     transformedtOrderLine struct {
@@ -68,6 +71,7 @@ func FetchAllTorder(c *gin.Context) {
         Order_amount: item.Order_amount,
         Description: item.Description,
         Order_status: item.Order_status,
+        Order_date: item.Order_date,
     })
 	}
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": _modeltOrder})
@@ -89,12 +93,13 @@ func CreateTorder(c *gin.Context) {
     
     //this transaction method, if failed data will rollback
     tx := conn.Db.Begin()
-
+    
     modeltOrder := tOrder{
         T_order_id: c.PostForm("t_order_id"),
         Order_type: c.PostForm("order_type"),
         Description: c.PostForm("description"),
         Order_status: c.PostForm("order_status"),
+        Order_date  : time.Now(),
     }
 
     if err := tx.Save(&modeltOrder).Error; err != nil {

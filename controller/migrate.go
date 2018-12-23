@@ -10,7 +10,6 @@ import (
     "net/http"
     log "github.com/Sirupsen/logrus"
     "strconv"
-    "fmt"
 )
 
 func MigrateDb(){
@@ -39,6 +38,7 @@ func MigrationDataInventory(c *gin.Context) {
         Order_type: "P",
         Description: "Import From Csv",
         Order_status: "C",
+        Order_date  : time.Now(),
     }
 
     if err := conn.Db.Save(&modeltOrder).Error; err != nil {
@@ -94,7 +94,6 @@ func MigrationDataInventory(c *gin.Context) {
                     T_order_line_id : int (modeltOrderLine.T_order_line_id),
                     Description     : "Import From CSV",
                 }
-                fmt.Println(param)
                 inventory.DoInout(param)
                 total_amount += amount
         }

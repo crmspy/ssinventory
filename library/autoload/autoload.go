@@ -44,7 +44,7 @@ func logger() {
 	log.SetFormatter(Formatter)
 	if err != nil {
 		// Cannot open log file. Logging to stderr
-		log.Fatalf("Cannot open Log file", err)
+        log.Fatalf("Cannot open Log file", err)
 	} else {
 		log.SetOutput(f)
 	}

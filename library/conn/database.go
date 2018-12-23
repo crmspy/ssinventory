@@ -17,7 +17,7 @@ func DbInit() (){
 	if dbdriver=="sqlite"{
 		Db, err = gorm.Open("sqlite3", "db/inventory.db")
 	}else if dbdriver=="mysql"{
-		Db, err = gorm.Open("mysql", "root:@/todo?charset=utf8&parseTime=True&loc=Local")
+		Db, err = gorm.Open("mysql", "root:@/ssinventory?charset=utf8&parseTime=True&loc=Local")
 	}
 	log.Print("try to connect to ",dbdriver)
 	

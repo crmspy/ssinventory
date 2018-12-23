@@ -89,7 +89,7 @@ t_order_line_id
 m_product_id
 inout_date
 inout_qty
-
+description
 ```
 
 **Database**

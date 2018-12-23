@@ -7,6 +7,8 @@ import (
     "github.com/crmspy/ssinventory/library/conn"
     "encoding/json"
     "time"
+    "math/rand"
+    "fmt"
 )
 
 type (
@@ -94,9 +96,37 @@ func CreateTorder(c *gin.Context) {
     //this transaction method, if failed data will rollback
     tx := conn.Db.Begin()
     
+    var t_order_id string = c.PostForm("t_order_id");
+    var order_type string = c.PostForm("order_type");
+
+    if order_type=="" {
+        c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "data": "order_type must be set, you can use PO = Purchase Order, SO = Sales Order"})
+        return
+    }
+
+    if t_order_id ==""{
+        rand.Seed(time.Now().Unix())
+        random_number :=  fmt.Sprintf("%v",rand.Intn(1000 - 13) + 13)
+        if order_type == "S"{
+            t_order_id = "SO_SS"+random_number+""+time.Now().Format("200601021504");
+        }else{
+            t_order_id = "PO_SS"+random_number+""+time.Now().Format("200601021504");
+        }
+    }else{
+        var t_order_id_exist string
+
+        //check t_order_id already exist
+        conn.Db.Raw(
+            `select t_order_id from t_orders where t_order_id = ? limit 1`,t_order_id).Row().Scan(&t_order_id_exist)
+        if (t_order_id_exist != ""){
+            c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "data": "t_order_id already exist, leave it blank if you wanna automatically generate it"})
+            return
+        }
+    }
+
     modeltOrder := tOrder{
-        T_order_id: c.PostForm("t_order_id"),
-        Order_type: c.PostForm("order_type"),
+        T_order_id: t_order_id,
+        Order_type: order_type,
         Description: c.PostForm("description"),
         Order_status: c.PostForm("order_status"),
         Order_date  : time.Now(),

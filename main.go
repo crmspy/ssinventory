@@ -8,7 +8,6 @@ email : crmspy@gmail.com
 import (
 	"github.com/crmspy/ssinventory/library/autoload"
 	."github.com/crmspy/ssinventory/controller"
-	."github.com/crmspy/ssinventory/library/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,17 +19,7 @@ func init() {
 // main
 func main() {
 	router := gin.Default()
-	auth := router.Group("/api/user")
-	{
-		auth.POST("/login", GetKey)
-        auth.GET("/getProfile", Auth,GetProfile)
-        /*
-        v1.Use(Auth) call middleware
-        auth.GET("/logout", Auth,GetTodo)
-		auth.GET("/session", Auth,GetTodo) //get active session
-        auth.DELETE("/session/:id", Auth,GetTodo) //delete session
-        */
-	}
+    
 	v1 := router.Group("/api/v1/")
 	{
 		//product

@@ -2,9 +2,9 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	//"github.com/jinzhu/gorm"
 	"net/http"
     "github.com/crmspy/ssinventory/library/conn"
+    "github.com/crmspy/ssinventory/library/cgx"
     "encoding/json"
     "time"
     "math/rand"
@@ -57,28 +57,21 @@ type (
     }
 )
 
-//get offset and limit for paging
-func calcpage(page int)(int,int){
-    page -= 1
-    limit := 10
-    offset := (page * limit) + 1
-    return offset,limit
-}
 
 // fetch all order
 func FetchAllTorder(c *gin.Context) {
-	var modeltOrder []tOrder
+    var modeltOrder []tOrder
     var _modeltOrder []transformedtOrder
     page,_  := strconv.Atoi(c.DefaultQuery("page", "1"))
-   offset,limit := calcpage(page)
-   conn.Db.Offset(offset).Limit(limit).Find(&modeltOrder)
-   if len(modeltOrder) <= 0 {
-	 c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No Order found!"})
-	 return
-	}
-   //transforms the Order for building a good response
-	for _, item := range modeltOrder {
-	 _modeltOrder = append(_modeltOrder, transformedtOrder{
+    offset,limit := cgx.Calcpage(page)
+    conn.Db.Offset(offset).Limit(limit).Find(&modeltOrder)
+    if len(modeltOrder) <= 0 {
+        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No Order found!"})
+        return
+    }
+    //transforms the Order for building a good response
+    for _, item := range modeltOrder {
+        _modeltOrder = append(_modeltOrder, transformedtOrder{
         T_order_id: item.T_order_id,
         Order_type: item.Order_type,
         Order_amount: item.Order_amount,
@@ -86,8 +79,8 @@ func FetchAllTorder(c *gin.Context) {
         Order_status: item.Order_status,
         Order_date: item.Order_date,
     })
-	}
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": _modeltOrder})
+    }
+    c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": _modeltOrder})
 }
 
 /*create order

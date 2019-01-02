@@ -1,5 +1,5 @@
 {
-    "database" : "postgresql",
+    "database" : "mysql",
     "mysql": {
         "host": "localhost",
         "port": "3306",
@@ -15,8 +15,8 @@
         "port": "5432",
         "username": "postgres",
         "password": "",
-        "database": "ssinventory"
-
+        "database": "ssinventory",
+        "sslmode": "disable"
     },
     "order_type": {
         "P": "Purchase Order",

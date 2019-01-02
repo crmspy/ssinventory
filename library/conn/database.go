@@ -35,7 +35,13 @@ func DbInit() (){
             Work In Progress 
             table success imported is m_inventories and m_product other that failed to migrate
         */
-        Db, err = gorm.Open("postgres", "host=localhost port=5432 user=postgres dbname=ssinventory password=postgres sslmode=disable")
+        var host string = viper.GetString("postgresql.host")
+        var port string = viper.GetString("postgresql.port")
+        var username string = viper.GetString("postgresql.username")
+        var password string = viper.GetString("postgresql.password")
+        var database string = viper.GetString("postgresql.database")
+        var sslmode string = viper.GetString("postgresql.sslmode")
+        Db, err = gorm.Open("postgres", "host="+host+" port="+port+" user="+username+" dbname="+database+" password="+password+" sslmode="+sslmode+"")
         
     }
 	log.Print("try to connect to ",dbdriver)

@@ -1,22 +1,29 @@
 {
-    "database" : "sqlite",
+    "database" : "mysql",
     "mysql": {
-        "host": "192.168.1.1",
-        "port": "8081",
+        "host": "localhost",
+        "port": "3306",
         "username": "root",
-        "password": ""
+        "password": "",
+        "database": "ssinventory"
     },
     "sqlite": {
         "file": "db/inventory.db"
     },
     "postgresql": {
-        "host": "192.168.1.2",
-        "port": "8082",
-        "username": true,
-        "password": true
+        "host": "localhost",
+        "port": "5432",
+        "username": "postgres",
+        "password": "",
+        "database": "ssinventory",
+        "sslmode": "disable"
     },
     "order_type": {
         "P": "Purchase Order",
         "S": "Sales Order"
+    },
+    "yn":{
+        "Y": "Yes",
+        "N": "No"
     }
 }

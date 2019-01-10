@@ -175,10 +175,10 @@ func AvailableStock(c *gin.Context){
         rows.Scan(&m_product_id,&product_name,&qty_count,&m_inventory_id,&last_update)
 
         var record []string
+        record = append(record, m_inventory_id)
         record = append(record, m_product_id)
         record = append(record, product_name)
         record = append(record, qty_count)
-        record = append(record, m_inventory_id)
         record = append(record, last_update.Format("2006-01-02 15:04:05"))
         if err := w.Write(record); err != nil {
             log.Fatalln("error writing record to csv:", err)

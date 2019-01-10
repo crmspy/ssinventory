@@ -22,7 +22,7 @@ type (
 
     //information all product at inventory
 	mInventoryLine struct {
-		M_inventory_line_id		int			`gorm:"AUTO_INCREMENT"`
+		M_inventory_line_id		int			`gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
 		M_inventory_id			string		`gorm:"type:varchar(64);"`
 		M_product_id			string		`gorm:"type:varchar(64);"`
         Qty_count               int         `gorm:"type:int"`
@@ -31,7 +31,7 @@ type (
 
     //Inout product at inventory
     tInout struct {
-        T_inout_id		        int			`gorm:"AUTO_INCREMENT"`
+        T_inout_id		        int			`gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
         Inout_type		        string		`gorm:"type:varchar(3);"`
 		M_inventory_id			string		`gorm:"type:varchar(64);"`
         M_product_id			string		`gorm:"type:varchar(64);"`

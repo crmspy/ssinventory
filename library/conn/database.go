@@ -5,7 +5,7 @@ import (
     _ "github.com/jinzhu/gorm/dialects/mysql"
     _ "github.com/jinzhu/gorm/dialects/postgres"
 	log "github.com/Sirupsen/logrus"
-	"github.com/spf13/viper"
+    "github.com/spf13/viper"
 )
 var (
     // DBCon is the connection handle for the database

@@ -4,145 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
     "github.com/crmspy/ssinventory/library/conn"
-    "github.com/crmspy/ssinventory/library/inventory"
     "time"
-    "fmt"
-    "strconv"
     "bytes"
     log "github.com/Sirupsen/logrus"
     "encoding/csv"
-)
-
-type (
-    //inventory location
-	mInventory struct {
-		M_inventory_id	        string		`gorm:"type:varchar(64);PRIMARY_KEY"`
-		Name			        string		`gorm:"type:varchar(255);"`
-	}
-
-    //information all product at inventory
-	mInventoryLine struct {
-		M_inventory_line_id		int			`gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
-		M_inventory_id			string		`gorm:"type:varchar(64);"`
-		M_product_id			string		`gorm:"type:varchar(64);"`
-        Qty_count               int         `gorm:"type:int"`
-        Last_update             time.Time   `gorm:"type:datetime"`
-	}
-
-    //Inout product at inventory
-    tInout struct {
-        T_inout_id		        int			`gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
-        Inout_type		        string		`gorm:"type:varchar(3);"`
-		M_inventory_id			string		`gorm:"type:varchar(64);"`
-        M_product_id			string		`gorm:"type:varchar(64);"`
-        T_order_line_id         int         `gorm:"type:int"`
-        Inout_qty               int         `gorm:"type:int"`
-        Inout_date              time.Time   `gorm:"type:datetime"`
-        Description             string      `gorm:"type:varchar(255)"`
-    }
-
-    // transformedmInventory represents a formatted inventory location
-	transformedmInventory struct {
-		M_inventory_id	string		`json:"m_inventory_id"`
-		Name			string		`json:"name"`
-    }
     
 )
-
-// Create Inventory location
-func CreateMinventory(c *gin.Context) {
-    var model_mInventory mInventory
-    m_inventory_id := c.PostForm("m_inventory_id")
-
-    conn.Db.First(&model_mInventory, "m_inventory_id = ?", m_inventory_id)
-    if model_mInventory.M_inventory_id != "" {
-        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Inventory location already exist!"})
-        return
-    }
-
-	model_mInventory = mInventory{
-        M_inventory_id: m_inventory_id,
-        Name: c.PostForm("name"),
-    }
-	conn.Db.Save(&model_mInventory)
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusOK, "message": "inventory location created successfully!", "resourceId": model_mInventory.M_inventory_id})
-}
-
-// fetch all inventory location
-func FetchAllMinventory(c *gin.Context) {
-    var modelmInventory []mInventory
-    var _modelmInventory []transformedmInventory
-    conn.Db.Find(&modelmInventory)
-    if len(modelmInventory) <= 0 {
-        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Inventory location Not found!"})
-        return
-    }
-    //transforms the Inventory for building a good response
-    for _, item := range modelmInventory {
-        _modelmInventory = append(_modelmInventory, transformedmInventory{
-            M_inventory_id: item.M_inventory_id,
-            Name: item.Name,
-        })
-    }
-    c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": _modelmInventory})
-}
-
-
-// update a inventory location
-func UpdateMinventory(c *gin.Context) {
-    var modelmInventory mInventory
-    m_inventory_id := c.Param("id")
-
-    conn.Db.First(&modelmInventory, "m_inventory_id = ?", m_inventory_id)
-
-    if modelmInventory.M_inventory_id == "" {
-        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No inventory location found!"})
-        return
-    }
-
-    conn.Db.Model(&modelmInventory).Update("name", c.PostForm("name"))
-    c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Inventory Location updated successfully!"})
-}
-
-// remove a inventory location
-func DeleteMinventory(c *gin.Context) {
-    var modelmInventory mInventory
-    m_inventory_id := c.Param("id")
-
-    conn.Db.Where("m_inventory_id = ?", m_inventory_id).First(&modelmInventory)
-    if modelmInventory.M_inventory_id == "" {
-        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No Inventory location found!"})
-        return
-        }
-    conn.Db.Delete(&modelmInventory)
-        c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Inventory location deleted successfully!"})
-}
-
-
-/*
-the main function of the inventory application
-this API Serve to update the stock of goods out / in from the warehouse
-please use IN / OUT for inout type
-IN = Put the product into the warehouse
-OUT = Eject product from the warehouse
-*/
-func Inout(c *gin.Context){
-    qty,_ := strconv.Atoi(c.PostForm("qty"))
-    t_order_line_id,_ := strconv.Atoi(c.PostForm("t_order_line_id"))
-    //test inventory manual input
-    param := inventory.InoutParam {
-        M_inventory_id: c.PostForm("m_inventory_id"),
-        Inout_qty: qty,
-        T_order_line_id: t_order_line_id,
-        Description: c.PostForm("description"),
-    }
-    if e := inventory.DoInout(param); e != nil{
-        c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprint(e)})
-    }else{
-        c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "inventory '"+param.M_inventory_id+"' was updated successfully"})
-    }
-}
-
 
 //download available product in inventory
 func AvailableStock(c *gin.Context){
@@ -158,15 +25,15 @@ func AvailableStock(c *gin.Context){
     // get available stock
     rows, _ := conn.Db.Raw(`
     select 
-        m_products.m_product_id,
-        m_products.name,
-        m_inventory_lines.qty_count,
-        m_inventory_lines.m_inventory_id,
-        m_inventory_lines.last_update
+        m_product.m_product_id,
+        m_product.name,
+        m_inventory_line.qty_count,
+        m_inventory_line.m_inventory_id,
+        m_inventory_line.last_update
     from 
-        m_inventory_lines 
-        left join m_products on (m_products.m_product_id = m_inventory_lines.m_product_id) 
-        order by m_inventory_lines.m_product_id asc
+        m_inventory_line 
+        left join m_product on (m_product.m_product_id = m_inventory_line.m_product_id) 
+        order by m_inventory_line.m_product_id asc
     `).Rows() // (*sql.Rows, error)
     defer rows.Close()
     for rows.Next() {
@@ -207,23 +74,23 @@ func GoodReceipt(c *gin.Context){
     // get available stock
     rows, _ := conn.Db.Raw(`
         select
-            t_inouts.inout_date,
-            m_products.m_product_id,
-            m_products.name,
-            t_order_lines.orderline_qty,
-            t_order_lines.orderline_received,
-            t_order_lines.orderline_price,
-            t_order_lines.orderline_total_amount,
-            t_orders.t_order_id,
-            t_inouts.description
+            t_inout.inout_date,
+            m_product.m_product_id,
+            m_product.name,
+            t_order_line.orderline_qty,
+            t_order_line.orderline_received,
+            t_order_line.orderline_price,
+            t_order_line.orderline_total_amount,
+            t_order.t_order_id,
+            t_inout.description
         from 
-            t_inouts
-            left join t_order_lines on (t_order_lines.t_order_line_id = t_inouts.t_order_line_id)
-            left join m_products on (m_products.m_product_id = t_order_lines.m_product_id)
-            left join t_orders on (t_orders.t_order_id = t_order_lines.t_order_id)
-            where t_inouts.inout_type = 'IN'
-            group by t_inouts.t_order_line_id
-            order by t_inouts.inout_date asc
+            t_inout
+            left join t_order_line on (t_order_line.t_order_line_id = t_inout.t_order_line_id)
+            left join m_product on (m_product.m_product_id = t_order_line.m_product_id)
+            left join t_order on (t_order.t_order_id = t_order_line.t_order_id)
+            where t_inout.inout_type = 'IN'
+            group by t_inout.t_order_line_id
+            order by t_inout.inout_date asc
         `).Rows() // (*sql.Rows, error)
     defer rows.Close()
     for rows.Next() {
@@ -267,23 +134,23 @@ func GoodShipment(c *gin.Context){
     // get available stock
     rows, _ := conn.Db.Raw(`
         select
-            t_inouts.inout_date,
-            m_products.m_product_id,
-            m_products.name,
-            t_order_lines.orderline_qty,
-            t_order_lines.orderline_received,
-            t_order_lines.orderline_price,
-            t_order_lines.orderline_total_amount,
-            t_orders.t_order_id,
-            t_inouts.description
+            t_inout.inout_date,
+            m_product.m_product_id,
+            m_product.name,
+            t_order_line.orderline_qty,
+            t_order_line.orderline_received,
+            t_order_line.orderline_price,
+            t_order_line.orderline_total_amount,
+            t_order.t_order_id,
+            t_inout.description
         from 
-            t_inouts
-            left join t_order_lines on (t_order_lines.t_order_line_id = t_inouts.t_order_line_id)
-            left join m_products on (m_products.m_product_id = t_order_lines.m_product_id)
-            left join t_orders on (t_orders.t_order_id = t_order_lines.t_order_id)
-            where t_inouts.inout_type = 'OUT'
-            group by t_inouts.t_order_line_id
-            order by t_inouts.inout_date asc
+            t_inout
+            left join t_order_line on (t_order_line.t_order_line_id = t_inout.t_order_line_id)
+            left join m_product on (m_product.m_product_id = t_order_line.m_product_id)
+            left join t_order on (t_order.t_order_id = t_order_line.t_order_id)
+            where t_inout.inout_type = 'OUT'
+            group by t_inout.t_order_line_id
+            order by t_inout.inout_date asc
         `).Rows() // (*sql.Rows, error)
     defer rows.Close()
     for rows.Next() {
@@ -323,18 +190,18 @@ func ValueofProduct(c *gin.Context){
     //query get data transaction product
     sqlquery := `
     select 
-        m_products.m_product_id,
-        m_products.name,
+        m_product.m_product_id,
+        m_product.name,
         sum(orderline_qty) as orderline_qty,
         avg(orderline_price) as average_price,
         sum(orderline_total_amount) as orderline_total_amount
     from
-        t_order_lines
-        left join m_products on (m_products.m_product_id = t_order_lines.m_product_id)
-        left join t_orders on (t_orders.t_order_id = t_order_lines.t_order_id)
-        where t_orders.order_type = 'P'
-        GROUP by t_order_lines.m_product_id
-        order by t_order_lines.m_product_id asc
+        t_order_line
+        left join m_product on (m_product.m_product_id = t_order_line.m_product_id)
+        left join t_order on (t_order.t_order_id = t_order_line.t_order_id)
+        where t_order.order_type = 'P'
+        GROUP by t_order_line.m_product_id
+        order by t_order_line.m_product_id asc
     `
 
     //prepare header data
@@ -403,28 +270,28 @@ func SalesOrder(c *gin.Context){
     select *,orderline_total_amount-(average_po_price*orderline_qty) as profit from (
         SELECT
         
-            t_orders.t_order_id,
-            t_orders.order_date,
-            m_products.m_product_id,
-            m_products.name,
-            t_order_lines.orderline_qty,
-            t_order_lines.orderline_price,
-            t_order_lines.orderline_total_amount,
+            t_order.t_order_id,
+            t_order.order_date,
+            m_product.m_product_id,
+            m_product.name,
+            t_order_line.orderline_qty,
+            t_order_line.orderline_price,
+            t_order_line.orderline_total_amount,
             (   
                 select 
                     avg(tol.orderline_price) as average_price
                 from
-                    t_order_lines tol
-                    left join t_orders too on (too.t_order_id = tol.t_order_id)
-                    where too.order_type = 'P' and tol.m_product_id = t_order_lines.m_product_id
+                    t_order_line tol
+                    left join t_order too on (too.t_order_id = tol.t_order_id)
+                    where too.order_type = 'P' and tol.m_product_id = t_order_line.m_product_id
             ) as average_po_price
 
         from 
-            t_order_lines
-            left join t_orders on (t_orders.t_order_id = t_order_lines.t_order_id)
-            left join m_products on (m_products.m_product_id = t_order_lines.m_product_id)
-            where t_orders.order_type = 'S'
-            and t_orders.order_date between '`+date_start+`' and '`+date_end+`'
+            t_order_line
+            left join t_order on (t_order.t_order_id = t_order_line.t_order_id)
+            left join m_product on (m_product.m_product_id = t_order_line.m_product_id)
+            where t_order.order_type = 'S'
+            and t_order.order_date between '`+date_start+`' and '`+date_end+`'
         ) TBX
     `
 

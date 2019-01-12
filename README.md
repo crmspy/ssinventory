@@ -131,6 +131,31 @@ curl --location --request POST "localhost:8080/api/v1/inventory" \
   --form "m_inventory_id=MAINMain" \
   --form "name=Main Inventory"
 ```
+
+## Folder Structure
+
+```python
+--- config 
+    #configuration file include database,system application config
+--- db 
+    #local database if you use sqlite
+--- docs 
+    #documentation application dan document sample / result
+--- library 
+    #general library collection that can use everytime you need
+--- logs
+    #application log
+--- modules
+    #this folder dividing business proses logic
+    --- controller #business proses
+    --- models #table in database
+    #core module contain basic application features
+--- tmp
+    #temporary folder
+--- web
+    #public web static file (www folder)
+```
+
 ## Database Desain & Flag
 This is database schema in ssinventory
 

@@ -10,14 +10,15 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/crmspy/ssinventory/library/conn"
-
+    "github.com/crmspy/ssinventory/migration"
 )
 
 func Run() {
 	logger()
 	//banner()
 	readConfig()
-	conn.DbInit()
+    conn.DbInit()
+    migration.Run()
 }
 
 // load application configuration

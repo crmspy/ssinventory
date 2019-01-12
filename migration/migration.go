@@ -12,13 +12,11 @@ automatic migrate n seed data from model
 */
 
 func Run(){
-    //migrate product
+    //prepare create table and seed data
     conn.Db.AutoMigrate(&inventory.Mproduct{})
     conn.Db.AutoMigrate(&order.Torder{},&order.TorderLine{})
     conn.Db.AutoMigrate(&inventory.Minventory{},&inventory.MinventoryLine{},&inventory.Tinout{})
     
-    
-
     model_Minventory := inventory.Minventory{
         M_inventory_id: "General",
         Name: "General Inventory Location",

@@ -129,7 +129,66 @@ func CreateTorder(c *gin.Context) {
     modelTorder.Order_amount = total_amount
     tx.Save(&modelTorder)
     tx.Commit()
-    
+    updateStock(modelTorder.T_order_id)
     c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "order data successfully!", "resourceId": modelTorder.T_order_id})
 
+}
+
+/*
+Update order status it can set to
+D = Draft W = Waiting for payment P = Paid I = In Progress C = Complete X = Canceled
+*/
+func UpdateStatus(c *gin.Context){
+    var t_order_id string = c.PostForm("t_order_id")
+    var order_status string = c.PostForm("order_status")
+
+    var modelTorder Torder
+
+    conn.Db.First(&modelTorder, "t_order_id = ?", t_order_id)
+
+    if modelTorder.T_order_id == "" {
+        c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No Order found!"})
+        return
+    }
+    updateStock(t_order_id)
+    conn.Db.Model(&modelTorder).Update("order_status", order_status)
+    c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Order Status updated successfully!"})
+
+}
+
+/*
+automatic update stock in inventory if order status is I = In progress
+and delete stock if order status = C
+*/
+func updateStock(t_order_id string){
+    var modelTorder Torder
+
+    conn.Db.First(&modelTorder, "t_order_id = ?", t_order_id)
+    if modelTorder.Order_status == "I"{
+        // product ordered
+        var m_inventory_id string = "General"
+        TorderLine, _ := conn.Db.Raw(`
+        select
+            orderline_qty,t_order_line_id
+        from 
+            t_order_line
+            left join t_order ON (t_order_line.t_order_id = t_order.t_order_id)
+            where t_order.t_order_id = ?
+        `,t_order_id).Rows() // (*sql.Rows, error)
+        
+        for TorderLine.Next() {
+            var qty,t_order_line_id int
+            TorderLine.Scan(&qty,&t_order_line_id)
+            //updating stock in inventory
+            param := inventory.InoutParam {
+                M_inventory_id  : m_inventory_id,
+                Inout_qty       : int (qty),
+                T_order_line_id : int (t_order_line_id),
+                Description     : "",
+            }
+            inventory.DoInout(param)
+        }
+            
+    }
+    
 }
